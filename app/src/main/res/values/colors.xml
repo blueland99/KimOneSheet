@@ -6,4 +6,6 @@
     <color name="dark_gray">#757575</color>
     <color name="color_text">#FF000000</color>
     <color name="color_line">#FFD8D8D8</color>
+    <color name="color_bg">#FFFFFFFF</color>
+    <color name="color_trans_bg">#80FFFFFF</color>
 </resources>

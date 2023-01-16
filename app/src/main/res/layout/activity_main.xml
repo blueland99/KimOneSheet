@@ -6,13 +6,15 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/white">
+        android:background="@color/color_bg">
 
         <ImageView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:alpha="0.8"
             android:scaleType="centerCrop"
-            android:src="@drawable/main_bg" />
+            android:src="@drawable/main_bg"
+            android:visibility="gone" />
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/top_layout"
@@ -22,20 +24,8 @@
             android:paddingVertical="12dp"
             app:layout_constraintTop_toTopOf="parent">
 
-            <ImageView
-                android:id="@+id/iv_list"
-                style="@style/image"
-                android:layout_width="wrap_content"
-                android:layout_height="40dp"
-                android:layout_marginStart="10dp"
-                android:src="@drawable/ic_list"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
-
             <ImageButton
-                android:id="@+id/btn_save"
+                android:id="@+id/btn_write"
                 style="@style/image"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
@@ -50,7 +40,7 @@
         <View
             android:id="@+id/line1"
             android:layout_width="match_parent"
-            android:layout_height="0.5dp"
+            android:layout_height="1dp"
             android:background="@color/color_line"
             app:layout_constraintTop_toBottomOf="@id/top_layout" />
 
@@ -70,6 +60,7 @@
                 android:layout_height="40dp"
                 android:background="@drawable/edit_bg"
                 android:hint="검색어"
+                android:imeOptions="actionSearch"
                 android:paddingStart="16dp"
                 android:paddingEnd="56dp"
                 android:textSize="14sp"
@@ -96,6 +87,8 @@
             android:id="@+id/recycler_view"
             android:layout_width="match_parent"
             android:layout_height="0dp"
+            android:orientation="vertical"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintTop_toBottomOf="@id/search_layout"
             tools:itemCount="4"

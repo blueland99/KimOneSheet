@@ -4,7 +4,8 @@
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:background="@color/color_bg">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/top_layout"
@@ -42,7 +43,7 @@
         <View
             android:id="@+id/line1"
             android:layout_width="match_parent"
-            android:layout_height="0.5dp"
+            android:layout_height="1dp"
             android:background="@color/color_line"
             app:layout_constraintTop_toBottomOf="@id/top_layout" />
 
@@ -57,15 +58,23 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/line1" />
 
-        <EditText
-            android:id="@+id/et_content"
-            style="@style/edit_multi_line"
+        <ScrollView
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_margin="16dp"
-            android:hint="내용"
+            android:padding="16dp"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/line1" />
+            app:layout_constraintTop_toBottomOf="@id/line1">
+
+            <EditText
+                android:id="@+id/et_content"
+                style="@style/edit_multi_line"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:hint="내용"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/line1" />
+
+        </ScrollView>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
