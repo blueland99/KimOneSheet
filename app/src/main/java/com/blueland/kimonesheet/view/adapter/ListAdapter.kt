@@ -4,16 +4,17 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.blueland.kimonesheet.databinding.ItemListBinding
-import com.blueland.kimonesheet.model.MemoModel
+import com.blueland.kimonesheet.db.entity.MemoEntity
 import com.blueland.kimonesheet.view.adapter.holder.ListHolder
 
 class ListAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
-    var items: List<MemoModel> = listOf()
+    var items: List<MemoEntity> = listOf()
     var listener: ListListener? = null
 
     interface ListListener {
-        fun itemOnClick(pos: Int, item: MemoModel)
+        fun itemOnClick(pos: Int, item: MemoEntity)
+        fun itemOnLongClick(pos: Int, item: MemoEntity)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
