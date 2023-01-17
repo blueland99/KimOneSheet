@@ -48,4 +48,7 @@ dependencies {
     /* room */
     implementation 'androidx.room:room-runtime:2.4.0'
     kapt 'androidx.room:room-compiler:2.4.0'
+
+    /* in-app update */
+    implementation 'com.google.android.play:core:1.10.3'
 }

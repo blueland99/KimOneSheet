@@ -13,8 +13,14 @@ import com.blueland.kimonesheet.global.App
 import com.blueland.kimonesheet.view.adapter.ListAdapter
 import com.blueland.kimonesheet.widget.extension.activityResultLauncher
 import com.blueland.kimonesheet.widget.extension.hideSoftKeyboard
+import com.blueland.kimonesheet.widget.extension.toast
+import com.google.android.play.core.appupdate.AppUpdateManagerFactory
+import com.google.android.play.core.install.model.AppUpdateType
+import com.google.android.play.core.install.model.UpdateAvailability
 
 class MainActivity : BaseActivity<ActivityMainBinding>(R.layout.activity_main), ListAdapter.ListListener {
+
+    private val appUpdateManager by lazy { AppUpdateManagerFactory.create(this) }
 
     private val memoDao by lazy {
         Room.databaseBuilder(this, RoomHelper::class.java, "memo_db")
@@ -86,5 +92,37 @@ class MainActivity : BaseActivity<ActivityMainBinding>(R.layout.activity_main), 
     override fun onPause() {
         super.onPause()
         hideSoftKeyboard(this)
+    }
+
+    companion object {
+        const val REQUEST_CODE_UPDATE = 1001
+    }
+
+    override fun afterOnCreate() {
+        super.afterOnCreate()
+        appUpdateManager.appUpdateInfo.addOnSuccessListener { appUpdateInfo ->
+
+            if (appUpdateInfo.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE
+                && appUpdateInfo.isUpdateTypeAllowed(AppUpdateType.IMMEDIATE)
+            ) {
+                // or AppUpdateType.FLEXIBLE
+                appUpdateManager.startUpdateFlowForResult(
+                    appUpdateInfo,
+                    AppUpdateType.IMMEDIATE, // or AppUpdateType.FLEXIBLE
+                    this,
+                    REQUEST_CODE_UPDATE
+                )
+            }
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (requestCode == REQUEST_CODE_UPDATE) {
+            if (resultCode != Activity.RESULT_OK) {
+                toast("업데이트가 취소 되었습니다.")
+            }
+        }
     }
 }

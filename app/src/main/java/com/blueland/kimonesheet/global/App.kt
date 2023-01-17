@@ -49,4 +49,28 @@ class App : Application() {
             .create()
         builder!!.show()
     }
+
+    /**
+     * AlertDialog
+     * @param context
+     * @param title 타이틀
+     * @param message 메세지
+     * @param positiveOnClickListener '확인' 이벤트 리스너
+     * @param negativeOnClickListener '취소' 이벤트 리스너
+     */
+    fun showAlertDialog(
+        context: Context?, title: String?, message: String?, positiveOnClickListener: DialogInterface.OnClickListener?, negativeOnClickListener: DialogInterface.OnClickListener?
+    ) {
+        if (builder != null) {
+            builder!!.dismiss()
+            builder = null
+        }
+        builder = AlertDialog.Builder(context!!)
+            .setTitle(title)
+            .setMessage(message)
+            .setPositiveButton(R.string.alert_confirm, positiveOnClickListener)
+            .setNegativeButton(R.string.alert_cancel, negativeOnClickListener)
+            .create()
+        builder!!.show()
+    }
 }
