@@ -7,10 +7,10 @@ import java.io.Serializable
 
 @Entity(tableName = "Memo")
 data class MemoEntity(
-    @PrimaryKey(autoGenerate = true)
-    @ColumnInfo val id: Long? = null,
+    @PrimaryKey(autoGenerate = true) val id: Long? = null,
     @ColumnInfo val title: String,
     @ColumnInfo val content: String,
     @ColumnInfo(name = "reg_date") val regDate: Long = System.currentTimeMillis(),
-    @ColumnInfo(name = "mod_date") val modDate: Long = System.currentTimeMillis()
+    @ColumnInfo(name = "mod_date") val modDate: Long = System.currentTimeMillis(),
+    @ColumnInfo(defaultValue = "0") val bookmark: Boolean = false
 ) : Serializable

@@ -3,7 +3,6 @@ package com.blueland.kimonesheet.view.activity
 import android.app.Activity
 import android.content.Intent
 import android.view.KeyEvent
-import androidx.room.Room
 import com.blueland.kimonesheet.R
 import com.blueland.kimonesheet.base.BaseActivity
 import com.blueland.kimonesheet.databinding.ActivityMainBinding
@@ -17,37 +16,46 @@ import com.blueland.kimonesheet.widget.extension.toast
 import com.google.android.play.core.appupdate.AppUpdateManagerFactory
 import com.google.android.play.core.install.model.AppUpdateType
 import com.google.android.play.core.install.model.UpdateAvailability
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class MainActivity : BaseActivity<ActivityMainBinding>(R.layout.activity_main), ListAdapter.ListListener {
 
     private val appUpdateManager by lazy { AppUpdateManagerFactory.create(this) }
 
-    private val memoDao by lazy {
-        Room.databaseBuilder(this, RoomHelper::class.java, "memo_db")
-            .allowMainThreadQueries()
-            .build()
-            .memoDao()
-    }
+    private val memoDao by lazy { RoomHelper.getInstance(this).memoDao() }
+
+    private val adapter = ListAdapter()
 
     private val launcher = activityResultLauncher {
         if (it.resultCode == Activity.RESULT_OK) {
-            setMemoList()
+            loadData()
         }
     }
 
     override fun initView() {
         super.initView()
         setMemoList()
+        loadData()
     }
 
     private fun setMemoList() {
         binding.apply {
-            val keyword = etKeyword.text.toString().trim()
-
-            val adapter = ListAdapter()
-            adapter.items = if (keyword.isBlank()) memoDao.selectAll() else memoDao.selectKeyword(keyword)
             adapter.listener = this@MainActivity
             recyclerView.adapter = adapter
+        }
+    }
+
+    private fun loadData() {
+        binding.apply {
+            val keyword = etKeyword.text.toString().trim()
+            CoroutineScope(Dispatchers.IO).launch {
+                val items = if (keyword.isBlank()) memoDao.selectAll() else memoDao.selectKeyword(keyword)
+                runOnUiThread {
+                    adapter.setListItems(items)
+                }
+            }
         }
     }
 

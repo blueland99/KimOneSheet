@@ -17,6 +17,11 @@ class ListAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         fun itemOnLongClick(pos: Int, item: MemoEntity)
     }
 
+    fun setListItems(items: List<MemoEntity>) {
+        this.items = items
+        notifyDataSetChanged()
+    }
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         return ListHolder(ItemListBinding.inflate(LayoutInflater.from(parent.context), parent, false), listener)
     }

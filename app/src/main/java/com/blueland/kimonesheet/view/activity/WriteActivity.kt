@@ -1,7 +1,6 @@
 package com.blueland.kimonesheet.view.activity
 
 import android.app.Activity
-import androidx.room.Room
 import com.blueland.kimonesheet.R
 import com.blueland.kimonesheet.base.BaseActivity
 import com.blueland.kimonesheet.databinding.ActivityWriteBinding
@@ -9,15 +8,13 @@ import com.blueland.kimonesheet.db.RoomHelper
 import com.blueland.kimonesheet.db.entity.MemoEntity
 import com.blueland.kimonesheet.widget.extension.hideSoftKeyboard
 import com.blueland.kimonesheet.widget.extension.toast
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class WriteActivity : BaseActivity<ActivityWriteBinding>(R.layout.activity_write) {
 
-    private val memoDao by lazy {
-        Room.databaseBuilder(this, RoomHelper::class.java, "memo_db")
-            .allowMainThreadQueries()
-            .build()
-            .memoDao()
-    }
+    private val memoDao by lazy { RoomHelper.getInstance(this).memoDao() }
 
     private var editMemo: MemoEntity? = null
 
@@ -41,23 +38,25 @@ class WriteActivity : BaseActivity<ActivityWriteBinding>(R.layout.activity_write
                     return@setOnClickListener
                 }
 
-                editMemo?.let {
-                    memoDao.update(
-                        MemoEntity(
-                            id = it.id,
-                            title = title,
-                            content = content,
-                            modDate = System.currentTimeMillis(),
-                            regDate = it.regDate
+                CoroutineScope(Dispatchers.IO).launch {
+                    editMemo?.let {
+                        memoDao.update(
+                            MemoEntity(
+                                id = it.id,
+                                title = title,
+                                content = content,
+                                modDate = System.currentTimeMillis(),
+                                regDate = it.regDate
+                            )
                         )
-                    )
-                } ?: run {
-                    memoDao.insert(
-                        MemoEntity(
-                            title = title,
-                            content = content
+                    } ?: run {
+                        memoDao.insert(
+                            MemoEntity(
+                                title = title,
+                                content = content
+                            )
                         )
-                    )
+                    }
                 }
 
                 // TODO: 저장
