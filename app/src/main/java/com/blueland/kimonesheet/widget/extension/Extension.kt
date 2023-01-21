@@ -1,6 +1,7 @@
 package com.blueland.kimonesheet.widget.extension
 
 import android.content.Context
+import android.util.TypedValue
 import android.widget.Toast
 import androidx.annotation.StringRes
 
@@ -16,4 +17,8 @@ internal fun Context.toast(@StringRes res: Int) {
 // show toast message by String
 internal fun Context.toast(string: String) {
     Toast.makeText(this, string, Toast.LENGTH_SHORT).show()
+}
+
+internal fun Context.dpToPx(dp: Int): Int {
+    return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp.toFloat(), resources.displayMetrics).toInt()
 }

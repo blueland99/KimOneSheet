@@ -3,33 +3,43 @@ package com.blueland.kimonesheet.view.adapter
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.blueland.kimonesheet.databinding.ItemListBinding
-import com.blueland.kimonesheet.db.entity.MemoEntity
-import com.blueland.kimonesheet.view.adapter.holder.ListHolder
+import com.blueland.kimonesheet.databinding.ItemFolderBinding
+import com.blueland.kimonesheet.databinding.ItemMemoBinding
+import com.blueland.kimonesheet.db.dao.MappingDto
+import com.blueland.kimonesheet.view.adapter.holder.FolderHolder
+import com.blueland.kimonesheet.view.adapter.holder.MemoHolder
 
 class ListAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
-    var items: List<MemoEntity> = listOf()
+    private var items: List<MappingDto> = listOf()
     var listener: ListListener? = null
 
     interface ListListener {
-        fun itemOnBookmark(pos: Int, item: MemoEntity, bookmarked: Boolean)
-        fun itemOnClick(pos: Int, item: MemoEntity)
-        fun itemOnLongClick(pos: Int, item: MemoEntity)
+        fun itemOnBookmark(id: Long, bookmarked: Boolean)
+        fun itemOnClick(item: MappingDto)
+        fun itemOnLongClick(item: MappingDto)
     }
 
-    fun setListItems(items: List<MemoEntity>) {
+    fun setListItems(items: List<MappingDto>) {
         this.items = items
         notifyDataSetChanged()
     }
 
+    override fun getItemViewType(position: Int): Int {
+        return items[position].type
+    }
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
-        return ListHolder(ItemListBinding.inflate(LayoutInflater.from(parent.context), parent, false), listener)
+        return when (viewType) {
+            0 -> FolderHolder(ItemFolderBinding.inflate(LayoutInflater.from(parent.context), parent, false), listener)
+            else -> MemoHolder(ItemMemoBinding.inflate(LayoutInflater.from(parent.context), parent, false), listener)
+        }
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         when (holder) {
-            is ListHolder -> holder.bind(position, items[position])
+            is FolderHolder -> holder.bind(position, items[position])
+            is MemoHolder -> holder.bind(position, items[position])
         }
     }
 

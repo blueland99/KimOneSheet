@@ -14,17 +14,33 @@ import kotlinx.coroutines.launch
 
 class WriteActivity : BaseActivity<ActivityWriteBinding>(R.layout.activity_write) {
 
-    private val memoDao by lazy { RoomHelper.getInstance(this).memoDao() }
+    private val helper by lazy { RoomHelper.getInstance(this) }
 
+    private var parentId: Long = -1
+    private var depth: Int = 0
     private var editMemo: MemoEntity? = null
 
     override fun initView() {
         super.initView()
-        editMemo = intent.getSerializableExtra("memo") as MemoEntity?
-        editMemo?.let {
-            binding.cbBookmark.isChecked = it.bookmark
-            binding.etTitle.setText(it.title)
-            binding.etContent.setText(it.content)
+        parentId = intent.getLongExtra("parentId", -1)
+        depth = intent.getIntExtra("depth", 0)
+        intent.getLongExtra("id", -1).let { id ->
+            if (id > 0) {
+                CoroutineScope(Dispatchers.IO).launch {
+                    helper.memoDao().select(id).let {
+                        if (it.isNotEmpty()) {
+                            editMemo = it[0]
+                            runOnUiThread {
+                                binding.apply {
+                                    cbBookmark.isChecked = it[0].bookmark
+                                    etTitle.setText(it[0].title)
+                                    etContent.setText(it[0].content)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -35,13 +51,13 @@ class WriteActivity : BaseActivity<ActivityWriteBinding>(R.layout.activity_write
                 val title = etTitle.text.toString().trim()
                 val content = etContent.text.toString()
                 if (content.isBlank()) {
-                    toast("내용을 입력해주세요.")
+                    toast("내용을 입력하세요.")
                     return@setOnClickListener
                 }
 
                 CoroutineScope(Dispatchers.IO).launch {
                     editMemo?.let {
-                        memoDao.update(
+                        helper.memoDao().update(
                             MemoEntity(
                                 id = it.id,
                                 title = title,
@@ -52,13 +68,22 @@ class WriteActivity : BaseActivity<ActivityWriteBinding>(R.layout.activity_write
                             )
                         )
                     } ?: run {
-                        memoDao.insert(
+                        helper.memoDao().insert(
                             MemoEntity(
                                 title = title,
                                 content = content,
                                 bookmark = cbBookmark.isChecked
                             )
                         )
+                        helper.memoDao().getLastId().let {
+                            if (it.isNotEmpty()) {
+                                helper.mappingDao().insertMemo(
+                                    depth = depth,
+                                    parentId = parentId,
+                                    childId = it[0]
+                                )
+                            }
+                        }
                     }
                 }
 

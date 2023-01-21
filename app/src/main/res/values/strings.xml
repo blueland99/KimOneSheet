@@ -4,6 +4,7 @@
     <string name="alert_confirm">확인</string>
     <string name="alert_cancel">취소</string>
     <string name="delete_memo">해당 메모를 삭제하시겠습니까?</string>
+    <string name="delete_folder">해당 폴더를 삭제하시겠습니까?</string>
     <string name="update_cancel">업데이트를 취소하였습니다.</string>
     <string name="update_title">업데이트 알림</string>
     <string name="update_content">필수 업데이트가 있습니다.\n최적의 사용 환경을 위해 최신 버전으로 업데이트 해주세요.</string>
