@@ -14,20 +14,32 @@
         <TextView
             android:id="@+id/tv_title"
             style="@style/text_single_line"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            app:layout_constraintTop_toTopOf="parent"
-            android:hint="제목없음" />
+            android:hint="제목없음"
+            app:layout_constraintEnd_toStartOf="@id/cb_bookmark"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <CheckBox
+            android:id="@+id/cb_bookmark"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_marginStart="10dp"
+            android:background="@drawable/cb_bookmark"
+            android:button="@null"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/tv_title"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
             android:id="@+id/tv_content"
             style="@style/text_multi_line"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
             android:textSize="14sp"
             app:layout_constraintBottom_toTopOf="@id/tv_datetime"
-            app:layout_constraintTop_toBottomOf="@id/tv_title"
+            app:layout_constraintTop_toBottomOf="@id/cb_bookmark"
             tools:text="가나다라마바사" />
 
         <TextView

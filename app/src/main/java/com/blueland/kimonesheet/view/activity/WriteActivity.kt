@@ -22,6 +22,7 @@ class WriteActivity : BaseActivity<ActivityWriteBinding>(R.layout.activity_write
         super.initView()
         editMemo = intent.getSerializableExtra("memo") as MemoEntity?
         editMemo?.let {
+            binding.cbBookmark.isChecked = it.bookmark
             binding.etTitle.setText(it.title)
             binding.etContent.setText(it.content)
         }
@@ -46,14 +47,16 @@ class WriteActivity : BaseActivity<ActivityWriteBinding>(R.layout.activity_write
                                 title = title,
                                 content = content,
                                 modDate = System.currentTimeMillis(),
-                                regDate = it.regDate
+                                regDate = it.regDate,
+                                bookmark = cbBookmark.isChecked
                             )
                         )
                     } ?: run {
                         memoDao.insert(
                             MemoEntity(
                                 title = title,
-                                content = content
+                                content = content,
+                                bookmark = cbBookmark.isChecked
                             )
                         )
                     }

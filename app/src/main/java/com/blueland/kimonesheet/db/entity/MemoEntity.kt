@@ -12,5 +12,5 @@ data class MemoEntity(
     @ColumnInfo val content: String,
     @ColumnInfo(name = "reg_date") val regDate: Long = System.currentTimeMillis(),
     @ColumnInfo(name = "mod_date") val modDate: Long = System.currentTimeMillis(),
-    @ColumnInfo(defaultValue = "0") val bookmark: Boolean = false
+    @ColumnInfo(defaultValue = "0") var bookmark: Boolean = false
 ) : Serializable

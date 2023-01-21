@@ -22,8 +22,20 @@
                 android:layout_height="0dp"
                 android:hint="제목"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toStartOf="@id/btn_save"
+                app:layout_constraintEnd_toStartOf="@id/cb_bookmark"
                 app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <CheckBox
+                android:id="@+id/cb_bookmark"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginStart="10dp"
+                android:background="@drawable/cb_bookmark"
+                android:button="@null"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/btn_save"
+                app:layout_constraintStart_toEndOf="@id/et_title"
                 app:layout_constraintTop_toTopOf="parent" />
 
             <ImageButton
@@ -35,7 +47,7 @@
                 android:src="@drawable/btn_save"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toEndOf="@id/et_title"
+                app:layout_constraintStart_toEndOf="@id/cb_bookmark"
                 app:layout_constraintTop_toTopOf="parent" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
@@ -49,32 +61,27 @@
 
         <ImageView
             android:layout_width="match_parent"
-            android:layout_height="0dp"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
             android:layout_marginHorizontal="30dp"
+            android:adjustViewBounds="true"
             android:alpha="0.4"
             android:src="@drawable/write_bg"
-            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/line1" />
 
-        <ScrollView
+        <EditText
+            android:id="@+id/et_content"
+            style="@style/edit_multi_line"
             android:layout_width="match_parent"
             android:layout_height="0dp"
+            android:layout_margin="16dp"
+            android:hint="내용"
             android:padding="16dp"
+            android:scrollbars="vertical"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/line1">
-
-            <EditText
-                android:id="@+id/et_content"
-                style="@style/edit_multi_line"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:hint="내용"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/line1" />
-
-        </ScrollView>
+            app:layout_constraintTop_toBottomOf="@id/line1" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

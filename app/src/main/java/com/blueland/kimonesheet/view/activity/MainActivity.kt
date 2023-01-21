@@ -59,6 +59,32 @@ class MainActivity : BaseActivity<ActivityMainBinding>(R.layout.activity_main), 
         }
     }
 
+    private fun updateData(item: MemoEntity) {
+        binding.apply {
+            val keyword = etKeyword.text.toString().trim()
+            CoroutineScope(Dispatchers.IO).launch {
+                memoDao.update(item)
+                val items = if (keyword.isBlank()) memoDao.selectAll() else memoDao.selectKeyword(keyword)
+                runOnUiThread {
+                    adapter.setListItems(items)
+                }
+            }
+        }
+    }
+
+    private fun deleteData(item: MemoEntity) {
+        binding.apply {
+            val keyword = etKeyword.text.toString().trim()
+            CoroutineScope(Dispatchers.IO).launch {
+                memoDao.delete(item)
+                val items = if (keyword.isBlank()) memoDao.selectAll() else memoDao.selectKeyword(keyword)
+                runOnUiThread {
+                    adapter.setListItems(items)
+                }
+            }
+        }
+    }
+
     override fun initListener() {
         super.initListener()
         binding.apply {
@@ -69,18 +95,23 @@ class MainActivity : BaseActivity<ActivityMainBinding>(R.layout.activity_main), 
             }
 
             btnSearch.setOnClickListener {
-                setMemoList()
+                loadData()
             }
 
             etKeyword.setOnKeyListener { _, keyCode, _ ->
                 when (keyCode) {
                     KeyEvent.KEYCODE_ENTER -> {
-                        setMemoList()
+                        loadData()
                     }
                 }
                 return@setOnKeyListener false
             }
         }
+    }
+
+    override fun itemOnBookmark(pos: Int, item: MemoEntity, bookmarked: Boolean) {
+        item.bookmark = bookmarked
+        updateData(item)
     }
 
     override fun itemOnClick(pos: Int, item: MemoEntity) {
@@ -92,8 +123,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(R.layout.activity_main), 
 
     override fun itemOnLongClick(pos: Int, item: MemoEntity) {
         App.getInstance().showAlertDialog(this, getString(R.string.delete_memo), { _, _ ->
-            memoDao.delete(item)
-            setMemoList()
+            deleteData(item)
         }, null)
     }
 

@@ -13,6 +13,7 @@ class ListAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     var listener: ListListener? = null
 
     interface ListListener {
+        fun itemOnBookmark(pos: Int, item: MemoEntity, bookmarked: Boolean)
         fun itemOnClick(pos: Int, item: MemoEntity)
         fun itemOnLongClick(pos: Int, item: MemoEntity)
     }

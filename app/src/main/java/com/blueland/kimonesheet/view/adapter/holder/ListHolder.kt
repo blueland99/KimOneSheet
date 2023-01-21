@@ -13,10 +13,14 @@ class ListHolder(
 
     fun bind(pos: Int, item: MemoEntity) {
         binding.apply {
+            cbBookmark.isChecked = item.bookmark
             tvTitle.text = item.title
             tvContent.text = item.content
-            tvDatetime.text = SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(Date(item.modDate))
+            tvDatetime.text = SimpleDateFormat("yyyy-MM-dd hh:mm").format(Date(item.modDate))
 
+            cbBookmark.setOnCheckedChangeListener { _, checked ->
+                listener?.itemOnBookmark(pos, item, checked)
+            }
             itemView.setOnClickListener {
                 listener?.itemOnClick(pos, item)
             }
