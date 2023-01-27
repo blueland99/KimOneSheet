@@ -12,7 +12,7 @@
             android:id="@+id/search_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="16dp"
+            android:layout_marginHorizontal="12dp"
             android:layout_marginVertical="10dp"
             app:layout_constraintBottom_toTopOf="@id/recycler_view"
             app:layout_constraintTop_toTopOf="parent">
@@ -36,8 +36,8 @@
             <ImageButton
                 android:id="@+id/btn_search"
                 style="@style/image"
-                android:layout_width="26dp"
-                android:layout_height="26dp"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
                 android:layout_marginEnd="20dp"
                 android:alpha="0.3"
                 android:src="@drawable/ic_search"
@@ -71,7 +71,8 @@
             app:fabSize="normal"
             app:layout_constraintBottom_toTopOf="@id/fb_write"
             app:layout_constraintEnd_toEndOf="@id/fb_write"
-            app:layout_constraintStart_toStartOf="@id/fb_write" />
+            app:layout_constraintStart_toStartOf="@id/fb_write"
+            tools:visibility="visible" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/fb_write"
@@ -86,7 +87,8 @@
             app:fabSize="normal"
             app:layout_constraintBottom_toTopOf="@id/fb_main"
             app:layout_constraintEnd_toEndOf="@id/fb_main"
-            app:layout_constraintStart_toStartOf="@id/fb_main" />
+            app:layout_constraintStart_toStartOf="@id/fb_main"
+            tools:visibility="visible" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/fb_main"
