@@ -12,7 +12,7 @@ interface MappingDao {
                 "LEFT JOIN Folder ON Mapping.child_id = Folder.id " +
                 "LEFT JOIN Memo ON Mapping.child_id = Memo.id " +
                 "WHERE Mapping.parent_id = :parentId " +
-                "ORDER BY type ASC, Memo.mod_date DESC"
+                "ORDER BY type ASC, Memo.bookmark DESC, Memo.mod_date DESC"
     )
     fun select(parentId: Long): List<MappingDto>
 
@@ -21,7 +21,7 @@ interface MappingDao {
                 "FROM Mapping " +
                 "LEFT JOIN Memo ON Mapping.child_id = Memo.id " +
                 "WHERE title LIKE '%' || :keyword || '%' OR content LIKE '%' || :keyword || '%' AND type = '1' " +
-                "ORDER BY Memo.mod_date DESC"
+                "ORDER BY Memo.bookmark DESC, Memo.mod_date DESC"
     )
     fun select(keyword: String): List<MappingDto>
 
