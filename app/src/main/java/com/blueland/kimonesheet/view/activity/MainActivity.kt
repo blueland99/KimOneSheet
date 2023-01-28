@@ -94,7 +94,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>(com.blueland.kimonesheet.
             fbWrite.setOnClickListener {
                 val intent = Intent(this@MainActivity, WriteActivity::class.java)
                 intent.putExtra("parentId", if (parent.isEmpty()) -1 else parent.last().childId)
-                intent.putExtra("depth", depth)
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
                 launcher.launch(intent)
             }
@@ -197,7 +196,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>(com.blueland.kimonesheet.
             helper.folderDao().getLastId().let {
                 if (it.isNotEmpty()) {
                     helper.mappingDao().insertFolder(
-                        depth = depth,
                         parentId = if (parent.isEmpty()) -1 else parent.last().childId,
                         childId = it[0]
                     )
@@ -222,10 +220,16 @@ class MainActivity : BaseActivity<ActivityMainBinding>(com.blueland.kimonesheet.
 
     private fun delete(type: Int, mappingId: Long, id: Long) {
         CoroutineScope(Dispatchers.IO).launch {
-            helper.mappingDao().delete(mappingId)
             when (type) {
-                0 -> helper.folderDao().delete(id)
-                1 -> helper.memoDao().delete(id)
+                0 -> {
+                    helper.mappingDao().delete(mappingId)
+                    helper.mappingDao().updateMapping(id, if (parent.isEmpty()) -1 else parent.last().childId)
+                    helper.folderDao().delete(id)
+                }
+                1 -> {
+                    helper.mappingDao().delete(mappingId)
+                    helper.memoDao().delete(id)
+                }
             }
             val items = helper.mappingDao().select(if (parent.isEmpty()) -1 else parent.last().childId)
             runOnUiThread {

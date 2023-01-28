@@ -40,8 +40,7 @@ abstract class RoomHelper : RoomDatabase() {
                             "'id' INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, " +
                             "'parent_id' INTEGER NOT NULL, " +
                             "'child_id' INTEGER NOT NULL, " +
-                            "'type' INTEGER NOT NULL DEFAULT 0, " +
-                            "'depth' INTEGER NOT NULL DEFAULT 0" +
+                            "'type' INTEGER NOT NULL DEFAULT 0" +
                             ")"
                 )
                 database.execSQL(

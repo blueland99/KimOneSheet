@@ -17,13 +17,11 @@ class WriteActivity : BaseActivity<ActivityWriteBinding>(R.layout.activity_write
     private val helper by lazy { RoomHelper.getInstance(this) }
 
     private var parentId: Long = -1
-    private var depth: Int = 0
     private var editMemo: MemoEntity? = null
 
     override fun initView() {
         super.initView()
         parentId = intent.getLongExtra("parentId", -1)
-        depth = intent.getIntExtra("depth", 0)
         intent.getLongExtra("id", -1).let { id ->
             if (id > 0) {
                 CoroutineScope(Dispatchers.IO).launch {
@@ -78,7 +76,6 @@ class WriteActivity : BaseActivity<ActivityWriteBinding>(R.layout.activity_write
                         helper.memoDao().getLastId().let {
                             if (it.isNotEmpty()) {
                                 helper.mappingDao().insertMemo(
-                                    depth = depth,
                                     parentId = parentId,
                                     childId = it[0]
                                 )
