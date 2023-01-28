@@ -143,6 +143,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(com.blueland.kimonesheet.
     private fun loadData() {
         CoroutineScope(Dispatchers.IO).launch {
             val items = helper.mappingDao().select(if (parent.isEmpty()) -1 else parent.last().childId)
+            Log.e(TAG, "loglog: ${items}")
             runOnUiThread {
                 adapter.setListItems(items)
             }
@@ -154,6 +155,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(com.blueland.kimonesheet.
         parent.clear()
         CoroutineScope(Dispatchers.IO).launch {
             val items = helper.mappingDao().select(binding.etKeyword.text.toString().trim())
+            Log.e(TAG, "loglog: ${items}")
             runOnUiThread {
                 adapter.setListItems(items)
             }

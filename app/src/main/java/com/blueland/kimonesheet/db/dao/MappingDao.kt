@@ -9,8 +9,8 @@ interface MappingDao {
     @Query(
         "SELECT Mapping.id, Memo.title, Memo.content, Folder.name, Memo.reg_date, Memo.mod_date, Memo.bookmark, parent_id, child_id, type " +
                 "FROM Mapping " +
-                "LEFT JOIN Folder ON Mapping.child_id = Folder.id " +
-                "LEFT JOIN Memo ON Mapping.child_id = Memo.id " +
+                "LEFT JOIN Folder ON Mapping.child_id = Folder.id AND Mapping.type = '0' " +
+                "LEFT JOIN Memo ON Mapping.child_id = Memo.id AND Mapping.type = '1' " +
                 "WHERE Mapping.parent_id = :parentId " +
                 "ORDER BY type ASC, Memo.bookmark DESC, Memo.mod_date DESC"
     )
@@ -19,8 +19,8 @@ interface MappingDao {
     @Query(
         "SELECT Mapping.id, Memo.title, Memo.content, Memo.reg_date, Memo.mod_date, Memo.bookmark, parent_id, child_id, type " +
                 "FROM Mapping " +
-                "LEFT JOIN Memo ON Mapping.child_id = Memo.id " +
-                "WHERE title LIKE '%' || :keyword || '%' OR content LIKE '%' || :keyword || '%' AND type = '1' " +
+                "INNER JOIN Memo ON Mapping.child_id = Memo.id AND Mapping.type = '1' " +
+                "WHERE title LIKE '%' || :keyword || '%' OR content LIKE '%' || :keyword || '%' " +
                 "ORDER BY Memo.bookmark DESC, Memo.mod_date DESC"
     )
     fun select(keyword: String): List<MappingDto>
@@ -34,12 +34,14 @@ interface MappingDao {
     @Query("DELETE FROM Mapping WHERE id = :id")
     fun delete(id: Long)
 
-    @Query("SELECT * " +
-            "FROM Mapping " +
-            "LEFT JOIN Folder ON Mapping.child_id = Folder.id " +
-            "LEFT JOIN Memo ON Mapping.child_id = Memo.id " +
-            "WHERE Mapping.parent_id = :parentId " +
-            "ORDER BY type ASC, Memo.bookmark DESC, Memo.mod_date DESC")
+    @Query(
+        "SELECT * " +
+                "FROM Mapping " +
+                "LEFT JOIN Folder ON Mapping.child_id = Folder.id " +
+                "LEFT JOIN Memo ON Mapping.child_id = Memo.id " +
+                "WHERE Mapping.parent_id = :parentId " +
+                "ORDER BY type ASC, Memo.bookmark DESC, Memo.mod_date DESC"
+    )
     fun updateMapping(parentId: Long): List<MappingDto>
 
     @Query("UPDATE Mapping SET parent_id = :newParentId WHERE parent_id = :parentId")
