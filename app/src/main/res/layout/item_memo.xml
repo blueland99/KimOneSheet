@@ -16,7 +16,7 @@
             style="@style/text_single_line"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:hint="제목없음"
+            android:hint="@string/untitled"
             android:textSize="14sp"
             app:layout_constraintEnd_toStartOf="@id/cb_bookmark"
             app:layout_constraintStart_toStartOf="parent"

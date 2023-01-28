@@ -66,7 +66,7 @@ class WriteActivity : BaseActivity<ActivityWriteBinding>(R.layout.activity_write
                 val title = etTitle.text.toString().trim()
                 val content = etContent.text.toString()
                 if (content.isBlank()) {
-                    toast("내용을 입력하세요.")
+                    toast(R.string.input_content)
                     return@setOnClickListener
                 }
 

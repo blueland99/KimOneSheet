@@ -66,7 +66,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(R.layout.activity_main), 
                 } else {
                     if (System.currentTimeMillis() - lastTimeBackPressed >= 1500) {
                         lastTimeBackPressed = System.currentTimeMillis()
-                        toast("'뒤로' 버튼을 한번 더 누르면 종료됩니다.")
+                        toast(R.string.back_pressed)
                     } else {
                         finish()
                     }
@@ -172,18 +172,18 @@ class MainActivity : BaseActivity<ActivityMainBinding>(R.layout.activity_main), 
         params.setMargins(margin, margin, margin, margin)
 
         val etFolder = EditText(this)
-        etFolder.hint = "폴더명"
+        etFolder.hint = getString(R.string.folder_name)
         etFolder.layoutParams = params
         container.addView(etFolder)
 
         AlertDialog.Builder(this)
-            .setTitle("폴더 생성")
+            .setTitle(R.string.create_folder)
             .setIcon(R.drawable.ic_folder)
             .setView(container)
             .setPositiveButton(getString(R.string.alert_confirm)) { _, _ ->
                 val folder = etFolder.text.toString().trim()
                 if (folder.isBlank()) {
-                    toast("폴더명을 입력하세요.")
+                    toast(R.string.input_folder_name)
                     return@setPositiveButton
                 }
                 addFolder(folder)
@@ -202,19 +202,19 @@ class MainActivity : BaseActivity<ActivityMainBinding>(R.layout.activity_main), 
         params.setMargins(margin, margin, margin, margin)
 
         val etFolder = EditText(this)
-        etFolder.hint = "폴더명"
+        etFolder.hint = getString(R.string.folder_name)
         etFolder.layoutParams = params
         etFolder.setText(name)
         container.addView(etFolder)
 
         AlertDialog.Builder(this)
-            .setTitle("폴더 수정")
+            .setTitle(getString(R.string.modify_folder))
             .setIcon(R.drawable.ic_folder)
             .setView(container)
             .setPositiveButton(getString(R.string.alert_confirm)) { _, _ ->
                 val folder = etFolder.text.toString().trim()
                 if (folder.isBlank()) {
-                    toast("폴더명을 입력하세요.")
+                    toast(R.string.input_folder_name)
                     return@setPositiveButton
                 }
                 updateFolder(folder, id)
@@ -310,7 +310,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(R.layout.activity_main), 
 
     private fun showFolderLongClickDialog(item: MappingDto) {
         AlertDialog.Builder(this)
-            .setItems(arrayOf("수정", "삭제")) { _, pos ->
+            .setItems(arrayOf(getString(R.string.modify), getString(R.string.delete))) { _, pos ->
                 when (pos) {
                     0 -> {
                         showModifyFolderDialog(item.folder ?: "", item.childId)
@@ -358,7 +358,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(R.layout.activity_main), 
 
         if (requestCode == REQUEST_CODE_UPDATE) {
             if (resultCode != Activity.RESULT_OK) {
-                toast("업데이트가 취소 되었습니다.")
+                toast(R.string.update_cancel)
             }
         }
     }
