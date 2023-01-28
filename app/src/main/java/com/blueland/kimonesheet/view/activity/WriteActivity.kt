@@ -51,8 +51,14 @@ class WriteActivity : BaseActivity<ActivityWriteBinding>(R.layout.activity_write
                 override fun handleOnBackPressed() {
                     val title = etTitle.text.toString().trim()
                     val content = etContent.text.toString()
-                    if (title.isNotEmpty() || content.isNotEmpty()) showTextAlertDialog()
-                    else finish()
+
+                    editMemo?.let {
+                        if (it.title != title || it.content != content) showTextAlertDialog(true)
+                        else finish()
+                    } ?: run {
+                        if (title.isNotEmpty() || content.isNotEmpty()) showTextAlertDialog(false)
+                        else finish()
+                    }
                 }
             })
 
@@ -102,8 +108,8 @@ class WriteActivity : BaseActivity<ActivityWriteBinding>(R.layout.activity_write
         }
     }
 
-    private fun showTextAlertDialog() {
-        App.getInstance().showAlertDialog(this, getString(R.string.memo_ing), { _, _ ->
+    private fun showTextAlertDialog(isModify: Boolean) {
+        App.getInstance().showAlertDialog(this, getString(if (isModify) R.string.memo_modify_ing else R.string.memo_ing), { _, _ ->
             finish()
         }, null)
     }
