@@ -39,6 +39,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(com.blueland.kimonesheet.
 
     private var depth = 0
     private var parent: MutableList<MappingDto> = mutableListOf()
+    private var isSearch = false
 
     private val launcher = activityResultLauncher {
         if (it.resultCode == Activity.RESULT_OK) {
@@ -75,13 +76,15 @@ class MainActivity : BaseActivity<ActivityMainBinding>(com.blueland.kimonesheet.
 
         binding.apply {
             btnSearch.setOnClickListener {
-                loadKeywordData()
+                val keyword = binding.etKeyword.text.toString()
+                if (keyword.isNotEmpty()) loadKeywordData()
+                else loadData()
             }
 
             etKeyword.setOnKeyListener { _, keyCode, _ ->
                 when (keyCode) {
                     KeyEvent.KEYCODE_ENTER -> {
-                        loadKeywordData()
+                        btnSearch.performClick()
                     }
                 }
                 return@setOnKeyListener false
@@ -141,9 +144,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>(com.blueland.kimonesheet.
     }
 
     private fun loadData() {
+        isSearch = false
         CoroutineScope(Dispatchers.IO).launch {
             val items = helper.mappingDao().select(if (parent.isEmpty()) -1 else parent.last().childId)
-            Log.e(TAG, "loglog: ${items}")
             runOnUiThread {
                 adapter.setListItems(items)
             }
@@ -151,11 +154,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>(com.blueland.kimonesheet.
     }
 
     private fun loadKeywordData() {
+        isSearch = true
         depth = 0
         parent.clear()
         CoroutineScope(Dispatchers.IO).launch {
-            val items = helper.mappingDao().select(binding.etKeyword.text.toString().trim())
-            Log.e(TAG, "loglog: ${items}")
+            val items = helper.mappingDao().select(binding.etKeyword.text.toString())
             runOnUiThread {
                 adapter.setListItems(items)
             }
@@ -201,10 +204,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(com.blueland.kimonesheet.
                         parentId = if (parent.isEmpty()) -1 else parent.last().childId,
                         childId = it[0]
                     )
-                    val items = helper.mappingDao().select(if (parent.isEmpty()) -1 else parent.last().childId)
-                    runOnUiThread {
-                        adapter.setListItems(items)
-                    }
+                    loadData()
                 }
             }
         }
@@ -213,10 +213,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(com.blueland.kimonesheet.
     private fun updateBookmark(id: Long, bookmarked: Boolean) {
         CoroutineScope(Dispatchers.IO).launch {
             helper.memoDao().updateBookmark(id, bookmarked)
-            val items = helper.mappingDao().select(if (parent.isEmpty()) -1 else parent.last().childId)
-            runOnUiThread {
-                adapter.setListItems(items)
-            }
+            if (isSearch) loadKeywordData() else loadData()
         }
     }
 
@@ -233,10 +230,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(com.blueland.kimonesheet.
                     helper.memoDao().delete(id)
                 }
             }
-            val items = helper.mappingDao().select(if (parent.isEmpty()) -1 else parent.last().childId)
-            runOnUiThread {
-                adapter.setListItems(items)
-            }
+            loadData()
         }
     }
 
