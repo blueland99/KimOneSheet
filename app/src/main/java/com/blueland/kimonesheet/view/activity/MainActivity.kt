@@ -96,7 +96,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(R.layout.activity_main), 
 
             fbWrite.setOnClickListener {
                 val intent = Intent(this@MainActivity, WriteActivity::class.java)
-                intent.putExtra("parentId", if (parent.isEmpty()) -1 else parent.last().childId)
+                intent.putExtra("parent_id", if (parent.isEmpty()) -1 else parent.last().childId)
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
                 launcher.launch(intent)
             }

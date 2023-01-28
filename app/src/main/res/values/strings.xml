@@ -8,4 +8,5 @@
     <string name="update_cancel">업데이트를 취소하였습니다.</string>
     <string name="update_title">업데이트 알림</string>
     <string name="update_content">필수 업데이트가 있습니다.\n최적의 사용 환경을 위해 최신 버전으로 업데이트 해주세요.</string>
+    <string name="memo_ing">작성중인 내용이 있습니다.\n나가시겠습니까?</string>
 </resources>
