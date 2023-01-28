@@ -47,9 +47,7 @@ internal fun showSoftKeyboard(view: View) {
 
 internal fun hideSoftKeyboard(activity: Activity) {
     val inputMethodManager = activity.getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
-    try {
-        inputMethodManager.hideSoftInputFromWindow(activity.currentFocus!!.windowToken, 0)
-    } catch (e: Exception) {
-        e.printStackTrace()
+    activity.currentFocus?.let {
+        inputMethodManager.hideSoftInputFromWindow(it.windowToken, 0)
     }
 }

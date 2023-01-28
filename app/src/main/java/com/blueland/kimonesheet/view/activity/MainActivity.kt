@@ -10,6 +10,7 @@ import android.view.animation.AnimationUtils
 import android.widget.EditText
 import android.widget.FrameLayout
 import androidx.activity.OnBackPressedCallback
+import com.blueland.kimonesheet.R
 import com.blueland.kimonesheet.base.BaseActivity
 import com.blueland.kimonesheet.databinding.ActivityMainBinding
 import com.blueland.kimonesheet.db.RoomHelper
@@ -28,8 +29,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-
-class MainActivity : BaseActivity<ActivityMainBinding>(com.blueland.kimonesheet.R.layout.activity_main), ListAdapter.ListListener {
+class MainActivity : BaseActivity<ActivityMainBinding>(R.layout.activity_main), ListAdapter.ListListener {
 
     private val appUpdateManager by lazy { AppUpdateManagerFactory.create(this) }
 
@@ -91,7 +91,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(com.blueland.kimonesheet.
             }
 
             fbFolder.setOnClickListener {
-                showAddFolderPopup()
+                showAddFolderDialog()
             }
 
             fbWrite.setOnClickListener {
@@ -108,10 +108,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>(com.blueland.kimonesheet.
     }
 
     private
-    val aniOpen by lazy { AnimationUtils.loadAnimation(this, com.blueland.kimonesheet.R.anim.fab_open) }
+    val aniOpen by lazy { AnimationUtils.loadAnimation(this, R.anim.fab_open) }
 
     private
-    val aniClose by lazy { AnimationUtils.loadAnimation(this, com.blueland.kimonesheet.R.anim.fab_close) }
+    val aniClose by lazy { AnimationUtils.loadAnimation(this, R.anim.fab_close) }
 
     private
     var isFabOpen = false
@@ -119,14 +119,14 @@ class MainActivity : BaseActivity<ActivityMainBinding>(com.blueland.kimonesheet.
     private fun toggleFab() {
         binding.apply {
             isFabOpen = if (isFabOpen) {
-                fbMain.setImageResource(com.blueland.kimonesheet.R.drawable.ic_open)
+                fbMain.setImageResource(R.drawable.ic_open)
                 fbFolder.startAnimation(aniClose)
                 fbWrite.startAnimation(aniClose)
                 fbFolder.isClickable = false
                 fbWrite.isClickable = false
                 false
             } else {
-                fbMain.setImageResource(com.blueland.kimonesheet.R.drawable.ic_close)
+                fbMain.setImageResource(R.drawable.ic_close)
                 fbFolder.startAnimation(aniOpen)
                 fbWrite.startAnimation(aniOpen)
                 fbFolder.isClickable = true
@@ -165,7 +165,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(com.blueland.kimonesheet.
         }
     }
 
-    private fun showAddFolderPopup() {
+    private fun showAddFolderDialog() {
         val container = FrameLayout(this)
         val params = FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
         val margin = dpToPx(20)
@@ -178,9 +178,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>(com.blueland.kimonesheet.
 
         AlertDialog.Builder(this)
             .setTitle("폴더 생성")
-            .setIcon(com.blueland.kimonesheet.R.drawable.ic_folder)
+            .setIcon(R.drawable.ic_folder)
             .setView(container)
-            .setPositiveButton(getString(com.blueland.kimonesheet.R.string.alert_confirm)) { _, _ ->
+            .setPositiveButton(getString(R.string.alert_confirm)) { _, _ ->
                 val folder = etFolder.text.toString().trim()
                 if (folder.isBlank()) {
                     toast("폴더명을 입력하세요.")
@@ -188,7 +188,38 @@ class MainActivity : BaseActivity<ActivityMainBinding>(com.blueland.kimonesheet.
                 }
                 addFolder(folder)
             }
-            .setNegativeButton(getString(com.blueland.kimonesheet.R.string.alert_cancel)) { _, _ ->
+            .setNegativeButton(getString(R.string.alert_cancel)) { _, _ ->
+
+            }
+            .create()
+            .show()
+    }
+
+    private fun showModifyFolderDialog(name: String, id: Long) {
+        val container = FrameLayout(this)
+        val params = FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+        val margin = dpToPx(20)
+        params.setMargins(margin, margin, margin, margin)
+
+        val etFolder = EditText(this)
+        etFolder.hint = "폴더명"
+        etFolder.layoutParams = params
+        etFolder.setText(name)
+        container.addView(etFolder)
+
+        AlertDialog.Builder(this)
+            .setTitle("폴더 수정")
+            .setIcon(R.drawable.ic_folder)
+            .setView(container)
+            .setPositiveButton(getString(R.string.alert_confirm)) { _, _ ->
+                val folder = etFolder.text.toString().trim()
+                if (folder.isBlank()) {
+                    toast("폴더명을 입력하세요.")
+                    return@setPositiveButton
+                }
+                updateFolder(folder, id)
+            }
+            .setNegativeButton(getString(R.string.alert_cancel)) { _, _ ->
 
             }
             .create()
@@ -207,6 +238,13 @@ class MainActivity : BaseActivity<ActivityMainBinding>(com.blueland.kimonesheet.
                     loadData()
                 }
             }
+        }
+    }
+
+    private fun updateFolder(name: String, id: Long) {
+        CoroutineScope(Dispatchers.IO).launch {
+            helper.mappingDao().updateFolder(name, id)
+            loadData()
         }
     }
 
@@ -258,16 +296,34 @@ class MainActivity : BaseActivity<ActivityMainBinding>(com.blueland.kimonesheet.
     override fun itemOnLongClick(item: MappingDto) {
         when (item.type) {
             0 -> {
-                App.getInstance().showAlertDialog(this, getString(com.blueland.kimonesheet.R.string.delete_folder), { _, _ ->
-                    delete(item.type, item.mappingId, item.childId)
-                }, null)
+                // 폴더
+                showFolderLongClickDialog(item)
             }
             1 -> {
-                App.getInstance().showAlertDialog(this, getString(com.blueland.kimonesheet.R.string.delete_memo), { _, _ ->
+                // 메모
+                App.getInstance().showAlertDialog(this, getString(R.string.delete_memo), { _, _ ->
                     delete(item.type, item.mappingId, item.childId)
                 }, null)
             }
         }
+    }
+
+    private fun showFolderLongClickDialog(item: MappingDto) {
+        AlertDialog.Builder(this)
+            .setItems(arrayOf("수정", "삭제")) { _, pos ->
+                when (pos) {
+                    0 -> {
+                        showModifyFolderDialog(item.folder ?: "", item.childId)
+                    }
+                    1 -> {
+                        App.getInstance().showAlertDialog(this, getString(R.string.delete_folder), { _, _ ->
+                            delete(item.type, item.mappingId, item.childId)
+                        }, null)
+                    }
+                }
+            }
+            .create()
+            .show()
     }
 
     override fun onPause() {

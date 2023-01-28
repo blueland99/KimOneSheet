@@ -31,6 +31,9 @@ interface MappingDao {
     @Query("INSERT INTO Mapping (parent_id, child_id, type) VALUES (:parentId, :childId, 0)")
     fun insertFolder(parentId: Long, childId: Long)
 
+    @Query("UPDATE Folder SET name = :name WHERE id = :id")
+    fun updateFolder(name: String, id: Long)
+
     @Query("DELETE FROM Mapping WHERE id = :id")
     fun delete(id: Long)
 
