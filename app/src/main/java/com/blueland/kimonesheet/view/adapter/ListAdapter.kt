@@ -15,7 +15,7 @@ class ListAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     var listener: ListListener? = null
 
     interface ListListener {
-        fun itemOnBookmark(id: Long, bookmarked: Boolean)
+        fun itemOnBookmark(id: Int, bookmarked: Boolean)
         fun itemOnClick(item: MappingDto)
         fun itemOnLongClick(item: MappingDto)
     }

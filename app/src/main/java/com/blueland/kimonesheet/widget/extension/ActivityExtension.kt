@@ -9,8 +9,6 @@ import androidx.activity.result.ActivityResult
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 
 /**
  * Activity 전용 - 유틸성 확장 함수를 정의
@@ -22,22 +20,6 @@ import androidx.recyclerview.widget.RecyclerView
  */
 internal fun AppCompatActivity.activityResultLauncher(onResultActivity: (ActivityResult) -> Unit): ActivityResultLauncher<Intent> {
     return registerForActivityResult(ActivityResultContracts.StartActivityForResult(), onResultActivity)
-}
-
-// Activity Intent
-internal fun AppCompatActivity.startActivity(context: Context, activity: Class<*>) {
-    startActivity(Intent(context, activity).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP))
-}
-
-// vertical RecyclerView
-internal fun RecyclerView.showVertical(context: Context) {
-    this.layoutManager = LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
-}
-
-// horizontal RecyclerView
-internal fun RecyclerView.showHorizontal(context: Context) {
-    this.layoutManager =
-        LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
 }
 
 internal fun showSoftKeyboard(view: View) {

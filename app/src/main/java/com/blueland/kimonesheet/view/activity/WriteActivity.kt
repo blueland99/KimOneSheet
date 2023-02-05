@@ -1,7 +1,10 @@
 package com.blueland.kimonesheet.view.activity
 
 import android.app.Activity
+import android.content.Context
+import android.content.Intent
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.result.ActivityResultLauncher
 import com.blueland.kimonesheet.R
 import com.blueland.kimonesheet.base.BaseActivity
 import com.blueland.kimonesheet.databinding.ActivityWriteBinding
@@ -18,13 +21,26 @@ class WriteActivity : BaseActivity<ActivityWriteBinding>(R.layout.activity_write
 
     private val helper by lazy { RoomHelper.getInstance(this) }
 
-    private var parentId: Long = -1
+    private var parentId: Int = -1
     private var editMemo: MemoEntity? = null
+
+    companion object {
+        /**
+         * WriteActivity 시작 메소드
+         */
+        fun start(context: Context, id: Int = -1, parentId: Int = -1, launcher: ActivityResultLauncher<Intent>) {
+            val intent = Intent(context, WriteActivity::class.java)
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            intent.putExtra("id", id)
+            intent.putExtra("parent_id", parentId)
+            launcher.launch(intent)
+        }
+    }
 
     override fun initView() {
         super.initView()
-        parentId = intent.getLongExtra("parent_id", -1)
-        intent.getLongExtra("id", -1).let { id ->
+        parentId = intent.getIntExtra("parent_id", -1)
+        intent.getIntExtra("id", -1).let { id ->
             if (id > 0) {
                 CoroutineScope(Dispatchers.IO).launch {
                     helper.memoDao().select(id).let {
@@ -101,7 +117,7 @@ class WriteActivity : BaseActivity<ActivityWriteBinding>(R.layout.activity_write
                     }
                 }
 
-                // TODO: 저장
+                // 저장
                 setResult(Activity.RESULT_OK)
                 finish()
             }

@@ -95,10 +95,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>(R.layout.activity_main), 
             }
 
             fbWrite.setOnClickListener {
-                val intent = Intent(this@MainActivity, WriteActivity::class.java)
-                intent.putExtra("parent_id", if (parent.isEmpty()) -1 else parent.last().childId)
-                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
-                launcher.launch(intent)
+                WriteActivity.start(
+                    context = this@MainActivity,
+                    parentId = if (parent.isEmpty()) -1 else parent.last().childId,
+                    launcher = launcher
+                )
             }
 
             fbMain.setOnClickListener {
@@ -195,7 +196,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(R.layout.activity_main), 
             .show()
     }
 
-    private fun showModifyFolderDialog(name: String, id: Long) {
+    private fun showModifyFolderDialog(name: String, id: Int) {
         val container = FrameLayout(this)
         val params = FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
         val margin = dpToPx(20)
@@ -241,30 +242,30 @@ class MainActivity : BaseActivity<ActivityMainBinding>(R.layout.activity_main), 
         }
     }
 
-    private fun updateFolder(name: String, id: Long) {
+    private fun updateFolder(name: String, id: Int) {
         CoroutineScope(Dispatchers.IO).launch {
-            helper.mappingDao().updateFolder(name, id)
+            helper.folderDao().updateFolder(name, id)
             loadData()
         }
     }
 
-    private fun updateBookmark(id: Long, bookmarked: Boolean) {
+    private fun updateBookmark(id: Int, bookmarked: Boolean) {
         CoroutineScope(Dispatchers.IO).launch {
             helper.memoDao().updateBookmark(id, bookmarked)
             if (isSearch) loadKeywordData() else loadData()
         }
     }
 
-    private fun delete(type: Int, mappingId: Long, id: Long) {
+    private fun delete(type: Int, mappingId: Int, id: Int) {
         CoroutineScope(Dispatchers.IO).launch {
             when (type) {
                 0 -> {
-                    helper.mappingDao().delete(mappingId)
+                    helper.mappingDao().deleteMapping(mappingId)
                     helper.mappingDao().updateMapping(id, if (parent.isEmpty()) -1 else parent.last().childId)
                     helper.folderDao().delete(id)
                 }
                 1 -> {
-                    helper.mappingDao().delete(mappingId)
+                    helper.mappingDao().deleteMapping(mappingId)
                     helper.memoDao().delete(id)
                 }
             }
@@ -272,7 +273,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(R.layout.activity_main), 
         }
     }
 
-    override fun itemOnBookmark(id: Long, bookmarked: Boolean) {
+    override fun itemOnBookmark(id: Int, bookmarked: Boolean) {
         updateBookmark(id, bookmarked)
     }
 
@@ -285,10 +286,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>(R.layout.activity_main), 
                 Log.d(TAG, "itemOnClick: $item")
             }
             1 -> {
-                val intent = Intent(this@MainActivity, WriteActivity::class.java)
-                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
-                intent.putExtra("id", item.childId)
-                launcher.launch(intent)
+                WriteActivity.start(
+                    context = this@MainActivity,
+                    id = item.childId,
+                    launcher = launcher
+                )
             }
         }
     }
