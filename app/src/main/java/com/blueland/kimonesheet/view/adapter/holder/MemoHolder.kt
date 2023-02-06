@@ -19,13 +19,13 @@ class MemoHolder(
             tvDatetime.text = SimpleDateFormat("yyyy-MM-dd hh:mm").format(Date(item.modDate!!))
 
             cbBookmark.setOnClickListener {
-                listener?.itemOnBookmark(item.childId, cbBookmark.isChecked)
+                listener?.itemOnBookmark(pos, item.childId, cbBookmark.isChecked)
             }
             itemView.setOnClickListener {
-                listener?.itemOnClick(item)
+                listener?.itemOnClick(pos, item)
             }
             itemView.setOnLongClickListener {
-                listener?.itemOnLongClick(item)
+                listener?.itemOnLongClick(pos, item)
                 return@setOnLongClickListener true
             }
         }

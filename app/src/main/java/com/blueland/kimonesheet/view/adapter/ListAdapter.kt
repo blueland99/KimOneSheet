@@ -11,18 +11,13 @@ import com.blueland.kimonesheet.view.adapter.holder.MemoHolder
 
 class ListAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
-    private var items: List<MappingDto> = listOf()
+    var items: MutableList<MappingDto> = mutableListOf()
     var listener: ListListener? = null
 
     interface ListListener {
-        fun itemOnBookmark(id: Int, bookmarked: Boolean)
-        fun itemOnClick(item: MappingDto)
-        fun itemOnLongClick(item: MappingDto)
-    }
-
-    fun setListItems(items: List<MappingDto>) {
-        this.items = items
-        notifyDataSetChanged()
+        fun itemOnBookmark(pos: Int, id: Long, bookmarked: Boolean)
+        fun itemOnClick(pos: Int, item: MappingDto)
+        fun itemOnLongClick(pos: Int, item: MappingDto)
     }
 
     override fun getItemViewType(position: Int): Int {

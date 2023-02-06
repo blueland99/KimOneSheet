@@ -21,9 +21,11 @@ abstract class BaseActivity<T : ViewDataBinding>(@LayoutRes private val layoutRe
 
         // 초기화된 layoutResId로 DataBinding 객체 생성
         binding = DataBindingUtil.setContentView(this, layoutResId)
+        binding.lifecycleOwner = this
 
         initView()
         initViewModel()
+        initObserver()
         initListener()
         afterOnCreate()
     }
@@ -31,6 +33,7 @@ abstract class BaseActivity<T : ViewDataBinding>(@LayoutRes private val layoutRe
     protected open fun beforeSetContentView() {}
     protected open fun initView() {}
     protected open fun initViewModel() {}
+    protected open fun initObserver() {}
     protected open fun initListener() {}
     protected open fun afterOnCreate() {}
 }

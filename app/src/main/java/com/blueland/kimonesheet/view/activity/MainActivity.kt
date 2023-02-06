@@ -2,6 +2,7 @@ package com.blueland.kimonesheet.view.activity
 
 import android.app.Activity
 import android.app.AlertDialog
+import android.content.Context
 import android.content.Intent
 import android.util.Log
 import android.view.KeyEvent
@@ -10,14 +11,17 @@ import android.view.animation.AnimationUtils
 import android.widget.EditText
 import android.widget.FrameLayout
 import androidx.activity.OnBackPressedCallback
+import androidx.lifecycle.ViewModelProvider
 import com.blueland.kimonesheet.R
 import com.blueland.kimonesheet.base.BaseActivity
 import com.blueland.kimonesheet.databinding.ActivityMainBinding
-import com.blueland.kimonesheet.db.RoomHelper
 import com.blueland.kimonesheet.db.dao.MappingDto
 import com.blueland.kimonesheet.db.entity.FolderEntity
 import com.blueland.kimonesheet.global.App
+import com.blueland.kimonesheet.repository.MemoRepository
 import com.blueland.kimonesheet.view.adapter.ListAdapter
+import com.blueland.kimonesheet.viewmodel.MainViewModel
+import com.blueland.kimonesheet.viewmodel.factory.ViewModelFactory
 import com.blueland.kimonesheet.widget.extension.activityResultLauncher
 import com.blueland.kimonesheet.widget.extension.dpToPx
 import com.blueland.kimonesheet.widget.extension.hideSoftKeyboard
@@ -25,32 +29,91 @@ import com.blueland.kimonesheet.widget.extension.toast
 import com.google.android.play.core.appupdate.AppUpdateManagerFactory
 import com.google.android.play.core.install.model.AppUpdateType
 import com.google.android.play.core.install.model.UpdateAvailability
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 class MainActivity : BaseActivity<ActivityMainBinding>(R.layout.activity_main), ListAdapter.ListListener {
 
-    private val appUpdateManager by lazy { AppUpdateManagerFactory.create(this) }
+    private lateinit var viewModel: MainViewModel
+    private lateinit var viewModelFactory: ViewModelFactory
 
-    private val helper by lazy { RoomHelper.getInstance(this) }
+    private val appUpdateManager by lazy { AppUpdateManagerFactory.create(this) }
 
     private val adapter = ListAdapter()
 
     private var depth = 0
     private var parent: MutableList<MappingDto> = mutableListOf()
     private var isSearch = false
+    private fun getParentId(): Long = if (parent.isEmpty()) -1 else parent.last().childId
+
+    companion object {
+        const val REQUEST_CODE_INAPP_UPDATE = 1001
+
+        /**
+         * MainActivity 시작 메소드
+         */
+        fun start(context: Context) {
+            val intent = Intent(context, MainActivity::class.java)
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            context.startActivity(intent)
+        }
+    }
 
     private val launcher = activityResultLauncher {
         if (it.resultCode == Activity.RESULT_OK) {
-            loadData()
+            it.data?.let { intent ->
+                viewModel.saveMemo(
+                    pos = intent.getIntExtra("pos", -1),
+                    item = intent.getSerializableExtra("item") as MappingDto,
+                    parentId = getParentId(),
+                )
+            }
         }
     }
 
     override fun initView() {
         super.initView()
-        setMemoList()
-        loadData()
+        setRecyclerView()
+    }
+
+    override fun initViewModel() {
+        super.initViewModel()
+        viewModelFactory = ViewModelFactory(MemoRepository())
+        viewModel = ViewModelProvider(this, viewModelFactory)[MainViewModel::class.java]
+    }
+
+    override fun initObserver() {
+        super.initObserver()
+        viewModel.isGetAllMemoComplete.observe(this) {
+            adapter.items = it as MutableList<MappingDto>
+            adapter.notifyDataSetChanged()
+        }
+
+        viewModel.isItemInsertComplete.observe(this) {
+            adapter.items.add(0, it)
+            adapter.notifyItemInserted(0)
+        }
+
+        viewModel.isItemUpdateComplete.observe(this) {
+            adapter.items.removeAt(it.first)
+            adapter.notifyItemRemoved(it.first)
+            var pos = 0
+            for ((index, item) in adapter.items.withIndex()) {
+                if (item.type == 1) {
+                    pos = index
+                    break
+                }
+            }
+            adapter.items.add(pos, it.second)
+            adapter.notifyItemInserted(pos)
+        }
+        viewModel.isItemBookmarkComplete.observe(this) {
+            adapter.items = it as MutableList<MappingDto>
+            adapter.notifyItemRangeChanged(0, adapter.itemCount)
+        }
+
+        viewModel.isItemDeleteComplete.observe(this) {
+            adapter.items.removeAt(it)
+            adapter.notifyItemRemoved(it)
+        }
     }
 
     private var lastTimeBackPressed: Long = 0
@@ -97,7 +160,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(R.layout.activity_main), 
             fbWrite.setOnClickListener {
                 WriteActivity.start(
                     context = this@MainActivity,
-                    parentId = if (parent.isEmpty()) -1 else parent.last().childId,
+                    parentId = getParentId(),
                     launcher = launcher
                 )
             }
@@ -108,14 +171,46 @@ class MainActivity : BaseActivity<ActivityMainBinding>(R.layout.activity_main), 
         }
     }
 
-    private
-    val aniOpen by lazy { AnimationUtils.loadAnimation(this, R.anim.fab_open) }
+    override fun afterOnCreate() {
+        super.afterOnCreate()
+        appUpdateCheck()
+        loadData()
+    }
 
-    private
-    val aniClose by lazy { AnimationUtils.loadAnimation(this, R.anim.fab_close) }
+    /**
+     * 상위 아이디로 조회 아이템 조회
+     */
+    private fun loadData() {
+        isSearch = false
+        viewModel.getAllMemo(getParentId())
+    }
 
-    private
-    var isFabOpen = false
+    /**
+     * 키워드로 아이템 조회
+     */
+    private fun loadKeywordData() {
+        isSearch = true
+        depth = 0
+        parent.clear()
+        viewModel.getAllMemo(binding.etKeyword.text.toString())
+    }
+
+    /**
+     * RecyclerView 초기화
+     */
+    private fun setRecyclerView() {
+        binding.apply {
+            adapter.listener = this@MainActivity
+            recyclerView.adapter = adapter
+        }
+    }
+
+    /**
+     * 플로팅 버튼 UI 처리
+     */
+    private val aniOpen by lazy { AnimationUtils.loadAnimation(this, R.anim.fab_open) }
+    private val aniClose by lazy { AnimationUtils.loadAnimation(this, R.anim.fab_close) }
+    private var isFabOpen = false
 
     private fun toggleFab() {
         binding.apply {
@@ -137,35 +232,56 @@ class MainActivity : BaseActivity<ActivityMainBinding>(R.layout.activity_main), 
         }
     }
 
-    private fun setMemoList() {
-        binding.apply {
-            adapter.listener = this@MainActivity
-            recyclerView.adapter = adapter
-        }
+    /**
+     * 아이템 북마크 클릭
+     */
+    override fun itemOnBookmark(pos: Int, id: Long, bookmarked: Boolean) {
+        viewModel.updateBookmark(id, bookmarked, getParentId())
     }
 
-    private fun loadData() {
-        isSearch = false
-        CoroutineScope(Dispatchers.IO).launch {
-            val items = helper.mappingDao().select(if (parent.isEmpty()) -1 else parent.last().childId)
-            runOnUiThread {
-                adapter.setListItems(items)
+    /**
+     * 아이템 클릭
+     */
+    override fun itemOnClick(pos: Int, item: MappingDto) {
+        Log.d(TAG, "itemOnClick: $item")
+        when (item.type) {
+            0 -> {
+                parent.add(item)
+                depth++
+                loadData()
+            }
+            1 -> {
+                WriteActivity.start(
+                    context = this@MainActivity,
+                    pos = pos,
+                    id = item.childId,
+                    launcher = launcher
+                )
             }
         }
     }
 
-    private fun loadKeywordData() {
-        isSearch = true
-        depth = 0
-        parent.clear()
-        CoroutineScope(Dispatchers.IO).launch {
-            val items = helper.mappingDao().select(binding.etKeyword.text.toString())
-            runOnUiThread {
-                adapter.setListItems(items)
+    /**
+     * 아이템 롱 클릭
+     */
+    override fun itemOnLongClick(pos: Int, item: MappingDto) {
+        when (item.type) {
+            0 -> {
+                // 폴더
+                showFolderLongClickDialog(pos, item)
+            }
+            1 -> {
+                // 메모
+                App.instance.showAlertDialog(this, getString(R.string.delete_memo), { _, _ ->
+                    viewModel.deleteMemo(pos, item.childId, item.mappingId)
+                }, null)
             }
         }
     }
 
+    /**
+     * 폴더 추가 팝업
+     */
     private fun showAddFolderDialog() {
         val container = FrameLayout(this)
         val params = FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
@@ -187,7 +303,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>(R.layout.activity_main), 
                     toast(R.string.input_folder_name)
                     return@setPositiveButton
                 }
-                addFolder(folder)
+                viewModel.addFolder(
+                    folder = FolderEntity(name = folder),
+                    parentId = getParentId()
+                )
             }
             .setNegativeButton(getString(R.string.alert_cancel)) { _, _ ->
 
@@ -196,7 +315,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>(R.layout.activity_main), 
             .show()
     }
 
-    private fun showModifyFolderDialog(name: String, id: Int) {
+    /**
+     * 폴더명 수정 팝업
+     */
+    private fun showModifyFolderDialog(pos: Int, name: String, id: Long) {
         val container = FrameLayout(this)
         val params = FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
         val margin = dpToPx(20)
@@ -218,7 +340,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>(R.layout.activity_main), 
                     toast(R.string.input_folder_name)
                     return@setPositiveButton
                 }
-                updateFolder(folder, id)
+                viewModel.updateFolder(
+                    pos = pos,
+                    id = id,
+                    name = name
+                )
             }
             .setNegativeButton(getString(R.string.alert_cancel)) { _, _ ->
 
@@ -227,99 +353,19 @@ class MainActivity : BaseActivity<ActivityMainBinding>(R.layout.activity_main), 
             .show()
     }
 
-    private fun addFolder(name: String) {
-        CoroutineScope(Dispatchers.IO).launch {
-            helper.folderDao().insert(FolderEntity(name = name))
-            helper.folderDao().getLastId().let {
-                if (it.isNotEmpty()) {
-                    helper.mappingDao().insertFolder(
-                        parentId = if (parent.isEmpty()) -1 else parent.last().childId,
-                        childId = it[0]
-                    )
-                    loadData()
-                }
-            }
-        }
-    }
-
-    private fun updateFolder(name: String, id: Int) {
-        CoroutineScope(Dispatchers.IO).launch {
-            helper.folderDao().updateFolder(name, id)
-            loadData()
-        }
-    }
-
-    private fun updateBookmark(id: Int, bookmarked: Boolean) {
-        CoroutineScope(Dispatchers.IO).launch {
-            helper.memoDao().updateBookmark(id, bookmarked)
-            if (isSearch) loadKeywordData() else loadData()
-        }
-    }
-
-    private fun delete(type: Int, mappingId: Int, id: Int) {
-        CoroutineScope(Dispatchers.IO).launch {
-            when (type) {
-                0 -> {
-                    helper.mappingDao().deleteMapping(mappingId)
-                    helper.mappingDao().updateMapping(id, if (parent.isEmpty()) -1 else parent.last().childId)
-                    helper.folderDao().delete(id)
-                }
-                1 -> {
-                    helper.mappingDao().deleteMapping(mappingId)
-                    helper.memoDao().delete(id)
-                }
-            }
-            loadData()
-        }
-    }
-
-    override fun itemOnBookmark(id: Int, bookmarked: Boolean) {
-        updateBookmark(id, bookmarked)
-    }
-
-    override fun itemOnClick(item: MappingDto) {
-        when (item.type) {
-            0 -> {
-                parent.add(item)
-                depth++
-                loadData()
-                Log.d(TAG, "itemOnClick: $item")
-            }
-            1 -> {
-                WriteActivity.start(
-                    context = this@MainActivity,
-                    id = item.childId,
-                    launcher = launcher
-                )
-            }
-        }
-    }
-
-    override fun itemOnLongClick(item: MappingDto) {
-        when (item.type) {
-            0 -> {
-                // 폴더
-                showFolderLongClickDialog(item)
-            }
-            1 -> {
-                // 메모
-                App.getInstance().showAlertDialog(this, getString(R.string.delete_memo), { _, _ ->
-                    delete(item.type, item.mappingId, item.childId)
-                }, null)
-            }
-        }
-    }
-
-    private fun showFolderLongClickDialog(item: MappingDto) {
+    /**
+     * 폴더 롱 클릭 선택 팝업. 수정 or 삭제
+     */
+    private fun showFolderLongClickDialog(pos: Int, item: MappingDto) {
         AlertDialog.Builder(this)
-            .setItems(arrayOf(getString(R.string.modify), getString(R.string.delete))) { _, pos ->
-                when (pos) {
+            .setItems(arrayOf(getString(R.string.modify), getString(R.string.delete))) { _, arrPos ->
+                when (arrPos) {
                     0 -> {
-                        showModifyFolderDialog(item.folder ?: "", item.childId)
+                        showModifyFolderDialog(pos, item.folder ?: "", item.childId)
                     }
                     1 -> {
-                        App.getInstance().showAlertDialog(this, getString(R.string.delete_folder), { _, _ ->
-                            delete(item.type, item.mappingId, item.childId)
+                        App.instance.showAlertDialog(this, getString(R.string.delete_folder), { _, _ ->
+                            viewModel.deleteFolder(item.childId, item.mappingId, getParentId())
                         }, null)
                     }
                 }
@@ -328,19 +374,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>(R.layout.activity_main), 
             .show()
     }
 
-    override fun onPause() {
-        super.onPause()
-        hideSoftKeyboard(this)
-    }
-
-    companion object {
-        const val REQUEST_CODE_UPDATE = 1001
-    }
-
-    override fun afterOnCreate() {
-        super.afterOnCreate()
+    /**
+     * In-App 업데이트 체크
+     */
+    private fun appUpdateCheck() {
         appUpdateManager.appUpdateInfo.addOnSuccessListener { appUpdateInfo ->
-
             if (appUpdateInfo.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE
                 && appUpdateInfo.isUpdateTypeAllowed(AppUpdateType.IMMEDIATE)
             ) {
@@ -349,7 +387,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(R.layout.activity_main), 
                     appUpdateInfo,
                     AppUpdateType.IMMEDIATE, // or AppUpdateType.FLEXIBLE
                     this,
-                    REQUEST_CODE_UPDATE
+                    REQUEST_CODE_INAPP_UPDATE
                 )
             }
         }
@@ -357,11 +395,15 @@ class MainActivity : BaseActivity<ActivityMainBinding>(R.layout.activity_main), 
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-
-        if (requestCode == REQUEST_CODE_UPDATE) {
+        if (requestCode == REQUEST_CODE_INAPP_UPDATE) {
             if (resultCode != Activity.RESULT_OK) {
                 toast(R.string.update_cancel)
             }
         }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        hideSoftKeyboard(this)
     }
 }

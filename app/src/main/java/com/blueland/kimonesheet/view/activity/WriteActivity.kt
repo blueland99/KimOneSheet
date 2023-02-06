@@ -5,12 +5,15 @@ import android.content.Context
 import android.content.Intent
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.ActivityResultLauncher
+import androidx.lifecycle.ViewModelProvider
 import com.blueland.kimonesheet.R
 import com.blueland.kimonesheet.base.BaseActivity
 import com.blueland.kimonesheet.databinding.ActivityWriteBinding
-import com.blueland.kimonesheet.db.RoomHelper
 import com.blueland.kimonesheet.db.entity.MemoEntity
 import com.blueland.kimonesheet.global.App
+import com.blueland.kimonesheet.repository.MemoRepository
+import com.blueland.kimonesheet.viewmodel.WriteViewModel
+import com.blueland.kimonesheet.viewmodel.factory.ViewModelFactory
 import com.blueland.kimonesheet.widget.extension.hideSoftKeyboard
 import com.blueland.kimonesheet.widget.extension.toast
 import kotlinx.coroutines.CoroutineScope
@@ -19,18 +22,22 @@ import kotlinx.coroutines.launch
 
 class WriteActivity : BaseActivity<ActivityWriteBinding>(R.layout.activity_write) {
 
-    private val helper by lazy { RoomHelper.getInstance(this) }
+    private lateinit var viewModel: WriteViewModel
+    private lateinit var viewModelFactory: ViewModelFactory
 
-    private var parentId: Int = -1
+    private var pos: Int = -1
+    private var parentId: Long = -1
+    private var id: Long = -1
     private var editMemo: MemoEntity? = null
 
     companion object {
         /**
          * WriteActivity 시작 메소드
          */
-        fun start(context: Context, id: Int = -1, parentId: Int = -1, launcher: ActivityResultLauncher<Intent>) {
+        fun start(context: Context, pos: Int = -1, id: Long = -1, parentId: Long = -1, launcher: ActivityResultLauncher<Intent>) {
             val intent = Intent(context, WriteActivity::class.java)
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            intent.putExtra("pos", pos)
             intent.putExtra("id", id)
             intent.putExtra("parent_id", parentId)
             launcher.launch(intent)
@@ -39,24 +46,50 @@ class WriteActivity : BaseActivity<ActivityWriteBinding>(R.layout.activity_write
 
     override fun initView() {
         super.initView()
-        parentId = intent.getIntExtra("parent_id", -1)
-        intent.getIntExtra("id", -1).let { id ->
-            if (id > 0) {
-                CoroutineScope(Dispatchers.IO).launch {
-                    helper.memoDao().select(id).let {
-                        if (it.isNotEmpty()) {
-                            editMemo = it[0]
-                            runOnUiThread {
-                                binding.apply {
-                                    cbBookmark.isChecked = it[0].bookmark
-                                    etTitle.setText(it[0].title)
-                                    etContent.setText(it[0].content)
-                                }
-                            }
-                        }
-                    }
-                }
+        pos = intent.getIntExtra("pos", -1)
+        parentId = intent.getLongExtra("parent_id", -1)
+        id = intent.getLongExtra("id", -1)
+    }
+
+    override fun initViewModel() {
+        super.initViewModel()
+        viewModelFactory = ViewModelFactory(MemoRepository())
+        viewModel = ViewModelProvider(this, viewModelFactory)[WriteViewModel::class.java]
+    }
+
+    override fun initObserver() {
+        super.initObserver()
+        viewModel.isGetMemoComplete.observe(this) {
+            editMemo = it
+            binding.apply {
+                cbBookmark.isChecked = it.bookmark
+                etTitle.setText(it.title)
+                etContent.setText(it.content)
             }
+        }
+
+        viewModel.isItemUpdateComplete.observe(this) {
+            // 수정
+            val intent = intent
+            intent.putExtra("pos", it.first)
+            intent.putExtra("item", it.second)
+            setResult(Activity.RESULT_OK, intent)
+            finish()
+        }
+
+        viewModel.isItemInsertComplete.observe(this) {
+            // 추가
+            val intent = intent
+            intent.putExtra("item", it)
+            setResult(Activity.RESULT_OK, intent)
+            finish()
+        }
+    }
+
+    override fun afterOnCreate() {
+        super.afterOnCreate()
+        if (id > 0) {
+            viewModel.selectMemoId(id)
         }
     }
 
@@ -88,8 +121,9 @@ class WriteActivity : BaseActivity<ActivityWriteBinding>(R.layout.activity_write
 
                 CoroutineScope(Dispatchers.IO).launch {
                     editMemo?.let {
-                        helper.memoDao().update(
-                            MemoEntity(
+                        viewModel.updateMemo(
+                            pos = pos,
+                            memo = MemoEntity(
                                 id = it.id,
                                 title = title,
                                 content = content,
@@ -99,33 +133,25 @@ class WriteActivity : BaseActivity<ActivityWriteBinding>(R.layout.activity_write
                             )
                         )
                     } ?: run {
-                        helper.memoDao().insert(
-                            MemoEntity(
+                        viewModel.addMemo(
+                            memo = MemoEntity(
                                 title = title,
                                 content = content,
                                 bookmark = cbBookmark.isChecked
-                            )
+                            ),
+                            parentId = parentId
                         )
-                        helper.memoDao().getLastId().let {
-                            if (it.isNotEmpty()) {
-                                helper.mappingDao().insertMemo(
-                                    parentId = parentId,
-                                    childId = it[0]
-                                )
-                            }
-                        }
                     }
                 }
-
-                // 저장
-                setResult(Activity.RESULT_OK)
-                finish()
             }
         }
     }
 
+    /**
+     * 작성중인 내용 안내 팝업
+     */
     private fun showTextAlertDialog(isModify: Boolean) {
-        App.getInstance().showAlertDialog(this, getString(if (isModify) R.string.memo_modify_ing else R.string.memo_ing), { _, _ ->
+        App.instance.showAlertDialog(this, getString(if (isModify) R.string.memo_modify_ing else R.string.memo_ing), { _, _ ->
             finish()
         }, null)
     }

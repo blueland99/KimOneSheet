@@ -13,10 +13,10 @@ class FolderHolder(
         binding.apply {
             tvFolder.text = item.folder
             itemView.setOnClickListener {
-                listener?.itemOnClick(item)
+                listener?.itemOnClick(pos, item)
             }
             itemView.setOnLongClickListener {
-                listener?.itemOnLongClick(item)
+                listener?.itemOnLongClick(pos, item)
                 return@setOnLongClickListener true
             }
         }

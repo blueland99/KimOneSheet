@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.DialogInterface
 import androidx.appcompat.app.AlertDialog
 import com.blueland.kimonesheet.R
+import com.blueland.kimonesheet.db.RoomHelper
 
 class App : Application() {
 
@@ -16,16 +17,17 @@ class App : Application() {
     }
 
     companion object {
-        private var instance: App? = null
-
-        fun getInstance(): App {
-            if (instance == null) instance = App()
-            return instance!!
-        }
+        lateinit var instance: App
+        lateinit var helper: RoomHelper
 
         fun getGlobalContext(): Context? {
-            return instance?.applicationContext
+            return instance.applicationContext
         }
+    }
+
+    override fun onCreate() {
+        super.onCreate()
+        helper = RoomHelper.getInstance(this)
     }
 
     /**
