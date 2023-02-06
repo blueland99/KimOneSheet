@@ -2,8 +2,9 @@
 Android Kotlin - 김 한 장에 메모하는 메모 앱
 
 ## 종속 항목
-- Room
-- Play Core
+- View Model
+- Room + Repository
+- In-App Update. Play Core
 
 ## 기능 구현
 - 메모 작성 및 수정, 삭제
