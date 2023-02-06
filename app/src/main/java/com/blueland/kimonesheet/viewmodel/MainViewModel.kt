@@ -12,8 +12,8 @@ import kotlinx.coroutines.launch
 class MainViewModel(private val memoRepository: MemoRepository) : ViewModel() {
 
     val isGetAllMemoComplete = MutableLiveData<List<MappingDto>>()
-    val isItemInsertComplete = MutableLiveData<MappingDto>()
-    val isItemUpdateComplete = MutableLiveData<Pair<Int, MappingDto>>()
+    val isItemInsertComplete = MutableLiveData<List<MappingDto>>()
+    val isItemUpdateComplete = MutableLiveData<Pair<Int, List<MappingDto>>>()
     val isItemBookmarkComplete = MutableLiveData<List<MappingDto>>()
     val isItemDeleteComplete = MutableLiveData<Int>()
 
@@ -63,7 +63,7 @@ class MainViewModel(private val memoRepository: MemoRepository) : ViewModel() {
         if (pos == -1) {
             getAllMemo(parentId)
         } else {
-            isItemUpdateComplete.postValue(Pair(pos, item))
+            isItemUpdateComplete.postValue(Pair(pos, listOf(item)))
         }
     }
 

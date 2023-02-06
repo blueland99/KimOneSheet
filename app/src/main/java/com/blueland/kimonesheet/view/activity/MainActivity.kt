@@ -88,13 +88,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>(R.layout.activity_main), 
         }
 
         viewModel.isItemInsertComplete.observe(this) {
-            adapter.items.add(0, it)
+            adapter.items.addAll(0, it)
             adapter.notifyItemInserted(0)
         }
 
         viewModel.isItemUpdateComplete.observe(this) {
-            adapter.items.removeAt(it.first)
-            adapter.notifyItemRemoved(it.first)
             var pos = 0
             for ((index, item) in adapter.items.withIndex()) {
                 if (item.type == 1) {
@@ -102,7 +100,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>(R.layout.activity_main), 
                     break
                 }
             }
-            adapter.items.add(pos, it.second)
+            adapter.items.removeAt(it.first)
+            adapter.notifyItemRemoved(it.first)
+            adapter.items.addAll(pos, it.second)
             adapter.notifyItemInserted(pos)
         }
         viewModel.isItemBookmarkComplete.observe(this) {

@@ -26,6 +26,7 @@
             android:id="@+id/cb_bookmark"
             android:layout_width="23dp"
             android:layout_height="23dp"
+            android:layout_marginStart="5dp"
             android:background="@drawable/cb_bookmark"
             android:button="@null"
             app:layout_constraintEnd_toEndOf="parent"
@@ -35,23 +36,27 @@
         <TextView
             android:id="@+id/tv_content"
             style="@style/text_single_line"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
             android:textSize="14sp"
             app:layout_constraintBottom_toTopOf="@id/tv_datetime"
+            app:layout_constraintEnd_toEndOf="@id/tv_title"
+            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tv_title"
             tools:text="가나다라마바사" />
 
         <TextView
             android:id="@+id/tv_datetime"
             style="@style/text_single_line"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
             android:textColor="@color/dark_gray"
             android:textSize="14sp"
             app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="@id/tv_title"
+            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tv_content"
             tools:text="2023-01-16 00:12" />
 

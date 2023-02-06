@@ -51,23 +51,23 @@ class MemoRepository {
         }
     }
 
-    suspend fun insertFolder(folder: FolderEntity, parentId: Long): MappingDto {
+    suspend fun insertFolder(folder: FolderEntity, parentId: Long): List<MappingDto> {
         folderDao.insert(folder).let { id ->
             mappingDao.insertFolder(
                 parentId = parentId,
                 childId = id
             ).let { it ->
                 mappingDao.selectMappingId(it).let {
-                    return it[0]
+                    return it
                 }
             }
         }
     }
 
-    suspend fun updateFolder(id: Long, name: String): MappingDto {
+    suspend fun updateFolder(id: Long, name: String): List<MappingDto> {
         folderDao.updateFolder(name, id).let {
             mappingDao.selectFolderId(id).let {
-                return it[0]
+                return it
             }
         }
     }
